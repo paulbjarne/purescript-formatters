@@ -50,6 +50,7 @@ data FormatterF a
   | DayOfMonth a
   | UnixTimestamp a
   | DayOfWeek a
+  | DayOfWeekThreeChars a
   | Hours24 a
   | Hours12 a
   | Meridiem a
@@ -74,6 +75,7 @@ instance formatterFFunctor ∷ Functor FormatterF where
   map f (DayOfMonth a) = DayOfMonth $ f a
   map f (UnixTimestamp a) = UnixTimestamp $ f a
   map f (DayOfWeek a) = DayOfWeek $ f a
+  map f (DayOfWeekThreeChars a) = DayOfWeekThreeChars $ f a
   map f (Hours24 a) = Hours24 $ f a
   map f (Hours12 a) = Hours12 $ f a
   map f (Meridiem a) = Meridiem $ f a
@@ -105,6 +107,7 @@ printFormatterF cb = case _ of
   DayOfMonth a → "D" <> cb a
   UnixTimestamp a → "X" <> cb a
   DayOfWeek a → "E" <> cb a
+  DayOfWeekThreeChars a → "ddd" <> cb a
   Hours24 a → "HH" <> cb a
   Hours12 a → "hh" <> cb a
   Meridiem a → "a" <> cb a
@@ -208,6 +211,8 @@ formatF cb dt@(DT.DateTime d t) = case _ of
     (show $ Int.floor $ (_ / 1000.0) $ unwrap $ unInstant $ fromDateTime dt) <> cb a
   DayOfWeek a →
     show (fromEnum $ D.weekday d) <> cb a
+  DayOfWeekThreeChars a →
+    printShortDay (D.weekday d) <> cb a
   Hours24 a →
     show (fromEnum $ T.hour t) <> cb a
   Hours12 a →
@@ -382,6 +387,10 @@ unformatFParser cb = case _ of
     dow ← digit
     when (dow > 7 || dow < 1) $ P.fail "Incorrect day of week"
     cb a
+  DayOfWeekThreeChars a → do
+    dow ← digit
+    lift $ modify _{day = Just $ fromEnum dow}
+    cb a
   Hours24 a → do
     ds ← some digit
     let hh = foldDigits ds
@@ -496,6 +505,16 @@ parseShortMonth =
     , (PC.try $ PS.string "Nov") $> D.November
     , (PC.try $ PS.string "Dec") $> D.December
     ]
+
+printShortDay :: D.Weekday → String
+printShortDay = case _ of
+  D.Monday → "Mon"
+  D.Tuesday → "Tue"
+  D.Wednesday → "Wed"
+  D.Thursday → "Thu"
+  D.Friday → "Fri"
+  D.Saturday → "Sat"
+  D.Sunday → "Sun"
 
 printShortMonth ∷ D.Month → String
 printShortMonth = case _ of
