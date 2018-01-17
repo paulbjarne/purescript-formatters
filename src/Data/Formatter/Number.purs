@@ -105,6 +105,11 @@ format f num =
            let
              multiplier = Math.pow 10.0 $ Int.toNumber f.after
            in Int.round $ leftover * multiplier
+         roundedWithZeros =
+           let roundedString = show rounded
+               roundedLength = Str.length roundedString
+               zeros = repeat "0" (f.after - roundedLength)
+           in zeros <> roundedString
          shownNumber =
            if f.comma
              then
@@ -126,7 +131,7 @@ format f num =
               else
               "."
               <> (if rounded == 0 then repeat "0" f.after else "")
-              <> (if rounded > 0 then show rounded else ""))
+              <> (if rounded > 0 then roundedWithZeros else ""))
 
 
 unformat ∷ Formatter → String → Either String Number
