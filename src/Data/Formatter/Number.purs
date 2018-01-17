@@ -77,7 +77,9 @@ format ∷ Formatter → Number → String
 format f num =
   let
     absed = Math.abs num
-    tens = if absed > 0.0 then Int.floor $ Math.log absed / Math.ln10 else 0
+    tens = if absed > 0.0
+             then max (Int.floor $ Math.log absed / Math.ln10) 0
+             else 0
   in if f.abbreviations
      then
        let
